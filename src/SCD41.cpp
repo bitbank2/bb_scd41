@@ -13,11 +13,15 @@ void SCD41::getSample()
 uint8_t ucTemp[16];
 uint16_t u16Status;
 
+    if (_iMode == SCD41_MODE_SINGLE_SHOT) {
+        sendCMD(SCD41_CMD_SINGLE_SHOT_MEASUREMENT);
+        delay(5000); // wait for measurement to occur
+    }
     u16Status = readRegister(SCD41_CMD_GET_DATA_READY_STATUS);
-Serial.print("status = 0x"); Serial.println(u16Status, HEX);
+//Serial.print("status = 0x"); Serial.println(u16Status, HEX);
 
     if ((u16Status & 0x07ff) == 0x0000) { // lower 11 bits == 0 -> data not ready
-       Serial.println("data not ready!");
+  //     Serial.println("data not ready!");
        return;
     }
     sendCMD(SCD41_CMD_READ_MEASUREMENT);
@@ -26,18 +30,43 @@ Serial.print("status = 0x"); Serial.println(u16Status, HEX);
 //Serial.println("Got 9 bytes from sensor");
     _iCO2 = ((uint16_t)ucTemp[0] << 8) | ucTemp[1];
     _iTemperature = (ucTemp[3] << 8) | ucTemp[4];
-    _iHumidity = (ucTemp[6] << 8) | ucTemp[7];    
+    _iHumidity = ((uint16_t)ucTemp[6] << 8) | ucTemp[7];    
     _iTemperature = -45 + ((_iTemperature) * 175L / 65536L);
     _iHumidity = (_iHumidity * 100L) / 65536L;
 
 } /* getSample() */
 
-int SCD41::startLowPower()
+void SCD41::wakeup()
+{
+    sendCMD(SCD41_CMD_WAKEUP);
+    delay(20);
+} /* wakeup() */
+
+int SCD41::stop()
 {
     sendCMD(SCD41_CMD_STOP_PERIODIC_MEASUREMENT);
-    delay(550); // wait for it to execute
-    sendCMD(SCD41_CMD_START_LP_PERIODIC_MEASUREMENT);
-} /* startLowPower() */
+    delay(500); // wait for it to execute
+    return SCD41_SUCCESS;
+} /* stop() */
+
+int SCD41::start(int iMode)
+{
+     if (iMode < SCD41_MODE_PERIODIC || iMode > SCD41_MODE_SINGLE_SHOT)
+        return SCD41_INVALID_PARAM;
+     _iMode = iMode;
+// Start correct mode
+     wakeup();
+     sendCMD(SCD41_CMD_SET_AUTOMATIC_SELF_CALIBRATION_ENABLED, 1);
+     delay(5);
+     if (iMode == SCD41_MODE_PERIODIC)
+        sendCMD(SCD41_CMD_START_PERIODIC_MEASUREMENT);
+     else if (iMode == SCD41_MODE_LP_PERIODIC)
+        sendCMD(SCD41_CMD_START_LP_PERIODIC_MEASUREMENT);
+     else // single shot is essentially "stopped"
+        sendCMD(SCD41_CMD_STOP_PERIODIC_MEASUREMENT);
+     delay(1);
+     return SCD41_SUCCESS;
+} /* start() */
 
 int SCD41::init(int iSDA, int iSCL, bool bBitBang, int32_t iSpeed)
 {
@@ -68,12 +97,6 @@ uint32_t u32Capabilities;
 		} // if address responded
 	} // for i
 	if (_iAddr == -1) return SCD41_ERROR;
-// Start periodic measurement mode
-     sendCMD(SCD41_CMD_SET_AUTOMATIC_SELF_CALIBRATION_ENABLED, 1);
-     delay(5);
-     sendCMD(SCD41_CMD_START_PERIODIC_MEASUREMENT);
-     delay(1);
-//Serial.println("Returning with success from init()");
      return SCD41_SUCCESS;
 } /* init() */
 
@@ -155,4 +178,6 @@ int SCD41::co2()
 
 void SCD41::shutdown()
 {
+  sendCMD(SCD41_CMD_POWERDOWN);
+  delay(1);
 } /* shutdown() */
