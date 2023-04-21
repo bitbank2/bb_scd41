@@ -25,6 +25,8 @@
 #define SCD41_CMD_GET_DATA_READY_STATUS                   0xe4b8 // execution time: 1ms
 #define SCD41_CMD_POWERDOWN                               0x36e0 // execution time: 1ms
 #define SCD41_CMD_WAKEUP                                  0x36f6 // execution time: 20ms
+#define SCD41_CMD_FORCE_RECALIBRATE                       0x362f // execution time: 400ms
+
 
 enum {
    SCD41_MODE_PERIODIC=0,
@@ -40,6 +42,7 @@ class SCD41
     int stop();
     void wakeup();
     void getSample(); // trigger + read the latest data
+    int recalibrate(uint16_t u16CO2);
     int temperature(); // temperature (C) as an int 10x (e.g. 25.5 = 255)
     int humidity(); // humidity as an int 10x (e.g. 50.5% = 505)
     int co2(); // CO2 as an int

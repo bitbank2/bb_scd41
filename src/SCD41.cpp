@@ -68,6 +68,19 @@ int SCD41::start(int iMode)
      return SCD41_SUCCESS;
 } /* start() */
 
+int SCD41::recalibrate(uint16_t u16CO2)
+{
+uint8_t ucTemp[4];
+
+        sendCMD(SCD41_CMD_FORCE_RECALIBRATE, u16CO2); // set the reference CO2 level at 423ppm
+        delay(400); // wait to complete
+    I2CRead(&_bbi2c, _iAddr, ucTemp, 3); // 3 byte response. 0xFFFF = failed
+    if (ucTemp[0] == 0xff && ucTemp[1] == 0xff)
+        return SCD41_ERROR;
+    else
+        return SCD41_SUCCESS;
+} /* recalibrate() */
+
 int SCD41::init(int iSDA, int iSCL, bool bBitBang, int32_t iSpeed)
 {
 uint8_t map[16];
