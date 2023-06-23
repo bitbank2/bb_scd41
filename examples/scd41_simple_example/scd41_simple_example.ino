@@ -10,7 +10,7 @@
 // Share — copy and redistribute the material in any medium or format
 // Adapt — remix, transform, and build upon the material for any purpose, even commercially.
 //
-#include <SCD41.h>
+#include <bb_scd41.h>
 SCD41 mySensor;
 
 // Define both of these to be -1 for default I2C pins

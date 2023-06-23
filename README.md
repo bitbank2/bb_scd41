@@ -1,5 +1,5 @@
-SCD41
-=====
+bb_scd41
+========
 
 Copyright (c) 2022 BitBank Software, Inc.<br>
 Written by Larry Bank<br>
