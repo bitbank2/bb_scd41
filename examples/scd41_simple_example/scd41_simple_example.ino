@@ -54,7 +54,7 @@ int i, iCO2;
        Serial.println(szAirQ[iCO2/1000]);
     sprintf(szTemp, "CO2 %d ppm ", iCO2);
     Serial.println(szTemp);
-    sprintf(szTemp, "Temperature %dC ", mySensor.temperature());
+    sprintf(szTemp, "Temperature %d.%dC ", mySensor.temperature()/10, mySensor.temperature() % 10);
     Serial.println(szTemp);
     sprintf(szTemp, "Humidity %d%%", mySensor.humidity());
     Serial.println(szTemp);

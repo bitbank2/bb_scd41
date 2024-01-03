@@ -40,7 +40,7 @@ uint16_t u16Status;
     _iCO2 = ((uint16_t)ucTemp[0] << 8) | ucTemp[1];
     _iTemperature = (ucTemp[3] << 8) | ucTemp[4];
     _iHumidity = ((uint16_t)ucTemp[6] << 8) | ucTemp[7];    
-    _iTemperature = -45 + ((_iTemperature) * 175L / 65536L);
+    _iTemperature = -450 + ((_iTemperature) * 1750L / 65536L);
     _iHumidity = (_iHumidity * 100L) / 65536L;
 
 } /* getSample() */
