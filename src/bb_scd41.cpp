@@ -187,9 +187,20 @@ uint8_t SCD41::computeCRC8(uint8_t data[], uint8_t len)
   return crc; //No output reflection
 } /* computeCRC8() */
 
+void SCD41::setUnits(int iUnits)
+{
+   if (iUnits < SCD41_UNIT_COUNT) {
+       _iUnit = iUnits;
+   }
+}
+
 int SCD41::temperature()
 {
-    return _iTemperature;
+    if (_iUnit == SCD41_UNIT_CELCIUS) {
+       return _iTemperature;
+    } else { // convert to farenheit
+       return (((_iTemperature * 9)/5)+320);
+    }
 } /* temp() */
 
 int SCD41::humidity()

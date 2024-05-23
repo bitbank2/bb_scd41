@@ -43,9 +43,17 @@ enum {
    SCD41_MODE_SINGLE_SHOT
 };
 
+enum {
+   SCD41_UNIT_CELCIUS = 0,
+   SCD41_UNIT_FARENHEIT,
+   SCD41_UNIT_COUNT
+};
+
 class SCD41
 {
   public:
+    SCD41() {_iUnit = SCD41_UNIT_CELCIUS;}
+    ~SCD41() {}
     int init(int iSDA=-1, int iSCL=-1, bool bBitBang=false, int32_t iSpeed=100000L);
     int start(int iMode = SCD41_MODE_PERIODIC);
     int stop();
@@ -61,10 +69,12 @@ class SCD41
     void sendCMD(uint16_t u16Cmd);
     void sendCMD(uint16_t u16Cmd, uint16_t u16Parameter);
     uint16_t readRegister(uint16_t u16Register);
+    void setUnits(int iUnits);
 
   private:
     uint32_t _iCO2, _iHumidity;
     int32_t _iTemperature;
+    int _iUnit;
     int _iType; // sensor type (SCD40/SCD41)
     int _iAddr; // I2C address of device
     int _iMode;
