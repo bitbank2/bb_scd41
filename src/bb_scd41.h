@@ -4,7 +4,8 @@
 // Written by Larry Bank - 5/16/2022
 // email: bitbank@pobox.com
 //
-// Copyright 2022 BitBank Software, Inc. All Rights Reserved.
+// Copyright 2022-2025 BitBank Software, Inc. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at

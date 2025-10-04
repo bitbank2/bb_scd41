@@ -1,5 +1,5 @@
 //
-// bb_rtc I/O wrapper functions for Espressif esp-idf
+// bb_scd41 I/O wrapper functions for Espressif esp-idf
 // Copyright (c) 2025 BitBank Software, Inc.
 // Written by Larry Bank (bitbank@pobox.com)
 //
@@ -19,8 +19,8 @@
 // Adapt these functions to whatever target platform you're using
 // and the rest of the code can remain unchanged
 //
-#ifndef __BB_RTC_IO__
-#define __BB_RTC_IO__
+#ifndef __BB_SCD41_IO__
+#define __BB_SCD41_IO__
 
 #include <stdint.h>
 #include <stdio.h>
@@ -249,7 +249,7 @@ static int I2CTest(BBI2C *pI2C, uint8_t addr)
         if (pI2C->bWire) {
       i2c_cmd_handle_t cmd = i2c_cmd_link_create();
       if (cmd == NULL) {
-         // ESP_LOGE("bb_rtc", "insufficient memory for I2C transaction");
+         // ESP_LOGE("bb_scd41", "insufficient memory for I2C transaction");
       }
       i2c_master_start(cmd);
       i2c_master_write_byte(cmd, (addr << 1) | I2C_MASTER_WRITE, true);
@@ -356,4 +356,4 @@ static int I2CReadRegister(BBI2C *pI2C, unsigned char iAddr, unsigned char u8Reg
     return iLen;
 } /* I2CReadRegister() */
 #endif // FUTURE
-#endif // __BB_RTC_IO__
+#endif // __BB_SCD41_IO__
