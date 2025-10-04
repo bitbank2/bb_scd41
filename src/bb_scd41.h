@@ -18,7 +18,43 @@
 #ifndef __SCD41__
 #define __SCD41__
 
+#ifdef __LINUX__
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <linux/types.h>
+#include <linux/spi/spidev.h>
+#include <linux/i2c-dev.h>
+#include <time.h>
+
+#else // !LINUX
+
+#ifdef ARDUINO
+#include <Arduino.h>
+#ifndef __AVR_ATtiny85__
+#include <Wire.h>
+#endif // !AVR
 #include <BitBang_I2C.h>
+#else // ESP_IDF?
+#include <stdint.h>
+#endif // ARDUINO
+#endif // !__LINUX__
+
+// For Linux and esp-idf we add a file/device handle member
+// to the BBI2C structure
+#if !defined( ARDUINO ) && !defined(__BB_I2C__)
+#define __BB_I2C__
+typedef struct _tagbbi2c
+{
+  int file_i2c;
+  uint8_t iSDA, iSCL;
+  uint8_t bWire;
+} BBI2C;
+#endif
 
 #define SCD41_SUCCESS 0
 #define SCD41_ERROR -1
@@ -55,6 +91,8 @@ class SCD41
     SCD41() {_iUnit = SCD41_UNIT_CELCIUS;}
     ~SCD41() {}
     int init(int iSDA=-1, int iSCL=-1, bool bBitBang=false, int32_t iSpeed=100000L);
+    int init(BBI2C *pBB);
+    BBI2C *getBB();
     int start(int iMode = SCD41_MODE_PERIODIC);
     int stop();
     void wakeup();

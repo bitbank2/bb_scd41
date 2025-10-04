@@ -1,12 +1,8 @@
-#include <Arduino.h>
-#include <BitBang_I2C.h>
-#include "bb_scd41.h"
-
 //
-// Written by Larry Bank - 5/16/2022
-// email: bitbank@pobox.com
+// BitBank Sensirion SCD40/41 CO2 Sensor Library
+// Written by Larry Bank
 //
-// Copyright 2022 BitBank Software, Inc. All Rights Reserved.
+// Copyright 2022-2025 BitBank Software, Inc. All Rights Reserved.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -16,6 +12,19 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//===========================================================================
+#include "bb_scd41.h"
+#if !defined(ARDUINO) && !defined(__LINUX__)
+#include "espidf_io.inl"
+#endif
+
+#ifdef __LINUX__
+#include "linux_io.inl"
+#endif // __LINUX__
+
+//
+// Written by Larry Bank - 5/16/2022
+// email: bitbank@pobox.com
 //
 void SCD41::getSample()
 {
@@ -101,8 +110,23 @@ int SCD41::init(int iSDA, int iSCL, bool bBitBang, int32_t iSpeed)
 	_bbi2c.iSCL = iSCL;
 	I2CInit(&_bbi2c, iSpeed);
         _iAddr = 0x62;
-        return SCD41_SUCCESS;
+        return (I2CTest(&_bbi2c, _iAddr)) ? SCD41_SUCCESS : SCD41_ERROR;
 } /* init() */
+
+int SCD41::init(BBI2C *pBB)
+{
+    if (pBB) {
+        memcpy(&_bbi2c, pBB, sizeof(BBI2C));
+        _iAddr = 0x62;
+        return (I2CTest(&_bbi2c, _iAddr)) ? SCD41_SUCCESS : SCD41_ERROR;
+    }
+    return SCD41_ERROR;
+} /* init() */
+
+BBI2C * SCD41::getBB(void)
+{
+    return &_bbi2c;
+} /* getBB() */
 
 uint16_t SCD41::readRegister(uint16_t u16Register)
 {
