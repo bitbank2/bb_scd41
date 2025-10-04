@@ -96,34 +96,12 @@ uint8_t ucTemp[4];
 
 int SCD41::init(int iSDA, int iSCL, bool bBitBang, int32_t iSpeed)
 {
-uint8_t map[16];
-int i, iDev;
-uint32_t u32Capabilities;
-
-//Serial.println("Entering init");
 	_bbi2c.bWire = !bBitBang; // use bit bang?
 	_bbi2c.iSDA = iSDA;
 	_bbi2c.iSCL = iSCL;
 	I2CInit(&_bbi2c, iSpeed);
-	// Scan the I2C bus and see if there are any supported devices connected
-	I2CScan(&_bbi2c, map);
-	_iAddr = -1;
-	for (i=1; i<128 && _iAddr < 0; i++) // skip address 0 (general call address) since more than 1 device can respond
-	{
-		if (map[i>>3] & (1 << (i & 7))) // device found
-		{
-//Serial.print("Found device at 0x"); Serial.println(i, HEX);
-        		iDev = I2CDiscoverDevice(&_bbi2c, i, &u32Capabilities);
-			if (iDev == DEVICE_SCD4X) // found one
-			{
-                                //Serial.println("found an SCD4X!");
-				_iAddr = i;
-				break;
-			}
-		} // if address responded
-	} // for i
-	if (_iAddr == -1) return SCD41_ERROR;
-     return SCD41_SUCCESS;
+        _iAddr = 0x62;
+        return SCD41_SUCCESS;
 } /* init() */
 
 uint16_t SCD41::readRegister(uint16_t u16Register)
