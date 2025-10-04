@@ -108,6 +108,7 @@ int SCD41::init(int iSDA, int iSCL, bool bBitBang, int32_t iSpeed)
 	_bbi2c.bWire = !bBitBang; // use bit bang?
 	_bbi2c.iSDA = iSDA;
 	_bbi2c.iSCL = iSCL;
+	_bbi2c.file_i2c = -1; // force it to create a new i2c handle
 	I2CInit(&_bbi2c, iSpeed);
         _iAddr = 0x62;
         return (I2CTest(&_bbi2c, _iAddr)) ? SCD41_SUCCESS : SCD41_ERROR;
