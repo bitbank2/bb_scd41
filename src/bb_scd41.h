@@ -1,10 +1,8 @@
 //
-// SCD4x CO2 sensor library
+// BitBank Sensirion SCD40/41 CO2 Sensor Library
+// Written by Larry Bank
 //
-// Written by Larry Bank - 5/16/2022
-// email: bitbank@pobox.com
-//
-// Copyright 2022-2025 BitBank Software, Inc. All Rights Reserved.
+// SPDX-FileCopyrightText: 2022 Larry Bank <bitbank@pobox.com>
 // SPDX-License-Identifier: Apache-2.0
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +13,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//===========================================================================
 //
 #ifndef __SCD41__
 #define __SCD41__
