@@ -60,6 +60,7 @@ typedef struct _tagbbi2c
 #define SCD41_SUCCESS 0
 #define SCD41_ERROR -1
 #define SCD41_INVALID_PARAM -2
+#define SCD41_NOT_READY -3
 
 // 16-bit I2C commands
 #define SCD41_CMD_START_PERIODIC_MEASUREMENT              0x21b1
@@ -75,7 +76,8 @@ typedef struct _tagbbi2c
 
 
 enum {
-   SCD41_MODE_PERIODIC=0,
+   SCD41_MODE_STOP=0,
+   SCD41_MODE_PERIODIC,
    SCD41_MODE_LP_PERIODIC,
    SCD41_MODE_SINGLE_SHOT
 };
@@ -89,7 +91,7 @@ enum {
 class SCD41
 {
   public:
-    SCD41() {_iUnit = SCD41_UNIT_CELCIUS;}
+    SCD41() {_iUnit = SCD41_UNIT_CELCIUS; _iMode = SCD41_MODE_STOP;}
     ~SCD41() {}
     int init(int iSDA=-1, int iSCL=-1, bool bBitBang=false, int32_t iSpeed=100000L);
     int init(BBI2C *pBB);
@@ -97,10 +99,10 @@ class SCD41
     int start(int iMode = SCD41_MODE_PERIODIC);
     int stop();
     void wakeup();
-    void getSample(); // trigger + read the latest data
+    int getSample(); // trigger + read the latest data
     int recalibrate(uint16_t u16CO2);
     void setAutoCalibrate(bool bOn);
-    int temperature(); // temperature (C) as an int 10x (e.g. 25.5 = 255)
+    int temperature(); // temperature (C or F) as an int 10x (e.g. 25.5 = 255)
     int humidity(); // humidity as an int 10x (e.g. 50.5% = 505)
     int co2(); // CO2 as an int
     void shutdown(); // turn off sensor (if possible)
@@ -108,7 +110,7 @@ class SCD41
     void sendCMD(uint16_t u16Cmd);
     void sendCMD(uint16_t u16Cmd, uint16_t u16Parameter);
     uint16_t readRegister(uint16_t u16Register);
-    void setUnits(int iUnits);
+    int setUnits(int iUnits);
 
   private:
     uint32_t _iCO2, _iHumidity;

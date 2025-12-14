@@ -27,10 +27,14 @@
 // Written by Larry Bank - 5/16/2022
 // email: bitbank@pobox.com
 //
-void SCD41::getSample()
+int SCD41::getSample()
 {
 uint8_t ucTemp[16];
 uint16_t u16Status;
+
+    if (_iMode == SCD41_MODE_STOP) {
+        return SCD41_ERROR; // wrong mode
+    }
 
     if (_iMode == SCD41_MODE_SINGLE_SHOT) {
         sendCMD(SCD41_CMD_SINGLE_SHOT_MEASUREMENT);
@@ -41,7 +45,7 @@ uint16_t u16Status;
 
     if ((u16Status & 0x07ff) == 0x0000) { // lower 11 bits == 0 -> data not ready
   //     Serial.println("data not ready!");
-       return;
+       return SCD41_NOT_READY;
     }
     sendCMD(SCD41_CMD_READ_MEASUREMENT);
     delay(5);
@@ -52,7 +56,7 @@ uint16_t u16Status;
     _iHumidity = ((uint16_t)ucTemp[6] << 8) | ucTemp[7];    
     _iTemperature = -450 + ((_iTemperature) * 1750L / 65536L);
     _iHumidity = (_iHumidity * 100L) / 65536L;
-
+    return SCD41_SUCCESS;
 } /* getSample() */
 
 void SCD41::wakeup()
@@ -65,6 +69,7 @@ int SCD41::stop()
 {
     sendCMD(SCD41_CMD_STOP_PERIODIC_MEASUREMENT);
     delay(500); // wait for it to execute
+    _iMode = SCD41_MODE_STOP;
     return SCD41_SUCCESS;
 } /* stop() */
 
@@ -193,12 +198,14 @@ uint8_t SCD41::computeCRC8(uint8_t data[], uint8_t len)
   return crc; //No output reflection
 } /* computeCRC8() */
 
-void SCD41::setUnits(int iUnits)
+int SCD41::setUnits(int iUnits)
 {
    if (iUnits < SCD41_UNIT_COUNT) {
        _iUnit = iUnits;
+       return SCD41_SUCCESS;
    }
-}
+   return SCD41_ERROR;
+} /* setUnits() */
 
 int SCD41::temperature()
 {
@@ -222,5 +229,6 @@ int SCD41::co2()
 void SCD41::shutdown()
 {
   sendCMD(SCD41_CMD_POWERDOWN);
+  _iMode = SCD41_MODE_STOP;
   delay(1);
 } /* shutdown() */
