@@ -48,11 +48,20 @@ int iChannel = pI2C->iSDA;
 static uint8_t I2CTest(BBI2C *pI2C, uint8_t addr)
 {
 uint8_t response = 0;
+int rc;
+ return 1;
     if (ioctl(pI2C->file_i2c, I2C_SLAVE, addr) >= 0) {
             // probe this address
         uint8_t ucTemp;
-        if (read(pI2C->file_i2c, &ucTemp, 1) >= 0)
+        rc = i2c_smbus_write_quick(pI2C->file_i2c, I2C_SMBUS_WRITE);
+       // rc = read(pI2C->file_i2c, &ucTemp, 1);
+        if (rc >= 0) {
             response = 1;
+        } else {
+            printf("failed, rc = %d\n", rc);
+        }
+    } else {
+       printf("ioctl failed\n");
     }
     return response;
 } /* I2CTest() */
