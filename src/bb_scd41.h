@@ -76,7 +76,8 @@ typedef struct _tagbbi2c
 
 
 enum {
-   SCD41_MODE_STOP=0,
+   SCD41_MODE_OFF=0,
+   SCD41_MODE_IDLE,
    SCD41_MODE_PERIODIC,
    SCD41_MODE_LP_PERIODIC,
    SCD41_MODE_SINGLE_SHOT
@@ -91,15 +92,17 @@ enum {
 class SCD41
 {
   public:
-    SCD41() {_iUnit = SCD41_UNIT_CELCIUS; _iMode = SCD41_MODE_STOP;}
+    SCD41() {_iUnit = SCD41_UNIT_CELCIUS; _iMode = SCD41_MODE_OFF;}
     ~SCD41() {}
     int init(int iSDA=-1, int iSCL=-1, bool bBitBang=false, int32_t iSpeed=100000L);
     int init(BBI2C *pBB);
     BBI2C *getBB();
     int start(int iMode = SCD41_MODE_PERIODIC);
     int stop();
+    int getMode();
     void wakeup();
-    int getSample(); // trigger + read the latest data
+    int triggerSample(); // trigger a sample to start (single shot mode only)
+    int getSample(); // read the latest sample data
     int recalibrate(uint16_t u16CO2);
     void setAutoCalibrate(bool bOn);
     int temperature(); // temperature (C or F) as an int 10x (e.g. 25.5 = 255)

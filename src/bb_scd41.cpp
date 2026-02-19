@@ -27,19 +27,24 @@
 // Written by Larry Bank - 5/16/2022
 // email: bitbank@pobox.com
 //
+int SCD41::triggerSample()
+{
+    if (_iMode != SCD41_MODE_SINGLE_SHOT) {
+        return SCD41_ERROR;
+    }
+    sendCMD(SCD41_CMD_SINGLE_SHOT_MEASUREMENT);
+    return SCD41_SUCCESS;
+} /* triggerSample() */
+
 int SCD41::getSample()
 {
 uint8_t ucTemp[16];
 uint16_t u16Status;
 
-    if (_iMode == SCD41_MODE_STOP) {
+    if (_iMode == SCD41_MODE_OFF) {
         return SCD41_ERROR; // wrong mode
     }
 
-    if (_iMode == SCD41_MODE_SINGLE_SHOT) {
-        sendCMD(SCD41_CMD_SINGLE_SHOT_MEASUREMENT);
-        delay(5000); // wait for measurement to occur
-    }
     u16Status = readRegister(SCD41_CMD_GET_DATA_READY_STATUS);
 //Serial.print("status = 0x"); Serial.println(u16Status, HEX);
 
@@ -59,17 +64,23 @@ uint16_t u16Status;
     return SCD41_SUCCESS;
 } /* getSample() */
 
+int SCD41::getMode()
+{
+    return _iMode;
+} /* getMode() */
+
 void SCD41::wakeup()
 {
     sendCMD(SCD41_CMD_WAKEUP);
     delay(20);
+    _iMode = SCD41_MODE_IDLE;
 } /* wakeup() */
 
 int SCD41::stop()
 {
     sendCMD(SCD41_CMD_STOP_PERIODIC_MEASUREMENT);
     delay(500); // wait for it to execute
-    _iMode = SCD41_MODE_STOP;
+    _iMode = SCD41_MODE_IDLE;
     return SCD41_SUCCESS;
 } /* stop() */
 
@@ -229,6 +240,6 @@ int SCD41::co2()
 void SCD41::shutdown()
 {
   sendCMD(SCD41_CMD_POWERDOWN);
-  _iMode = SCD41_MODE_STOP;
+  _iMode = SCD41_MODE_OFF;
   delay(1);
 } /* shutdown() */
