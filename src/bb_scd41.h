@@ -76,7 +76,8 @@ typedef struct _tagbbi2c
 
 
 enum {
-   SCD41_MODE_OFF=0,
+   SCD41_MODE_INVALID=0,
+   SCD41_MODE_OFF,
    SCD41_MODE_IDLE,
    SCD41_MODE_PERIODIC,
    SCD41_MODE_LP_PERIODIC,
@@ -92,7 +93,7 @@ enum {
 class SCD41
 {
   public:
-    SCD41() {_iUnit = SCD41_UNIT_CELCIUS; _iMode = SCD41_MODE_OFF;}
+    SCD41() {_iUnit = SCD41_UNIT_CELCIUS; _iMode = SCD41_MODE_INVALID;}
     ~SCD41() {}
     int init(int iSDA=-1, int iSCL=-1, bool bBitBang=false, int32_t iSpeed=100000L);
     int init(BBI2C *pBB);

@@ -29,7 +29,7 @@
 //
 int SCD41::triggerSample()
 {
-    if (_iMode != SCD41_MODE_SINGLE_SHOT) {
+    if (_iMode != SCD41_MODE_IDLE) {
         return SCD41_ERROR;
     }
     sendCMD(SCD41_CMD_SINGLE_SHOT_MEASUREMENT);
@@ -41,7 +41,7 @@ int SCD41::getSample()
 uint8_t ucTemp[16];
 uint16_t u16Status;
 
-    if (_iMode == SCD41_MODE_OFF) {
+    if (_iMode == SCD41_MODE_INVALID || _iMode == SCD41_MODE_OFF) {
         return SCD41_ERROR; // wrong mode
     }
 
@@ -71,6 +71,10 @@ int SCD41::getMode()
 
 void SCD41::wakeup()
 {
+    if (_iMode == SCD41_MODE_INVALID) {
+        return; // can't wake up
+    }
+
     sendCMD(SCD41_CMD_WAKEUP);
     delay(20);
     _iMode = SCD41_MODE_IDLE;
@@ -78,6 +82,10 @@ void SCD41::wakeup()
 
 int SCD41::stop()
 {
+    if (_iMode == SCD41_MODE_INVALID) {
+        return SCD41_ERROR;
+    }
+
     sendCMD(SCD41_CMD_STOP_PERIODIC_MEASUREMENT);
     delay(500); // wait for it to execute
     _iMode = SCD41_MODE_IDLE;
@@ -86,24 +94,41 @@ int SCD41::stop()
 
 int SCD41::start(int iMode)
 {
+    if (_iMode == SCD41_MODE_INVALID) {
+        return SCD41_ERROR;
+    }
+
      if (iMode < SCD41_MODE_PERIODIC || iMode > SCD41_MODE_SINGLE_SHOT)
         return SCD41_INVALID_PARAM;
+    if (_iMode == SCD41_MODE_OFF) {
+        wakeup(); // first wake up the sensor
+        delay(5);
+    }
+// Single shot is essentially "idle"
+    if (iMode == SCD41_MODE_SINGLE_SHOT) {
+        if (_iMode == SCD41_MODE_PERIODIC || _iMode == SCD41_MODE_LP_PERIODIC) {
+            // stop old periodic sampling mode
+            sendCMD(SCD41_CMD_STOP_PERIODIC_MEASUREMENT);
+        }
+        _iMode = SCD41_MODE_IDLE;
+        return SCD41_SUCCESS;
+    }
      _iMode = iMode;
 // Start correct mode
-     wakeup();
-     delay(5);
      if (iMode == SCD41_MODE_PERIODIC)
         sendCMD(SCD41_CMD_START_PERIODIC_MEASUREMENT);
      else if (iMode == SCD41_MODE_LP_PERIODIC)
         sendCMD(SCD41_CMD_START_LP_PERIODIC_MEASUREMENT);
-     else // single shot is essentially "stopped"
-        sendCMD(SCD41_CMD_STOP_PERIODIC_MEASUREMENT);
      delay(1);
      return SCD41_SUCCESS;
 } /* start() */
 
 void SCD41::setAutoCalibrate(bool bOn)
 {
+    if (_iMode == SCD41_MODE_INVALID) {
+        return;
+    }
+
     sendCMD(SCD41_CMD_SET_AUTOMATIC_SELF_CALIBRATION_ENABLED, bOn);
 } /* setAutoCalibrate() */
 
@@ -111,8 +136,12 @@ int SCD41::recalibrate(uint16_t u16CO2)
 {
 uint8_t ucTemp[4];
 
-        sendCMD(SCD41_CMD_FORCE_RECALIBRATE, u16CO2); // set the reference CO2 level at 423ppm
-        delay(400); // wait to complete
+    if (_iMode == SCD41_MODE_INVALID || _iMode == SCD41_MODE_OFF) {
+        return SCD41_ERROR;
+    }
+
+    sendCMD(SCD41_CMD_FORCE_RECALIBRATE, u16CO2); // set the reference CO2 level at 423ppm
+    delay(400); // wait to complete
     I2CRead(&_bbi2c, _iAddr, ucTemp, 3); // 3 byte response. 0xFFFF = failed
     if (ucTemp[0] == 0xff && ucTemp[1] == 0xff)
         return SCD41_ERROR;
@@ -130,7 +159,11 @@ int SCD41::init(int iSDA, int iSCL, bool bBitBang, int32_t iSpeed)
 #endif
 	I2CInit(&_bbi2c, iSpeed);
         _iAddr = 0x62;
-        return (I2CTest(&_bbi2c, _iAddr)) ? SCD41_SUCCESS : SCD41_ERROR;
+        if (I2CTest(&_bbi2c, _iAddr)) {
+            _iMode = SCD41_MODE_OFF;
+            return SCD41_SUCCESS;
+        }
+        return SCD41_ERROR;
 } /* init() */
 
 int SCD41::init(BBI2C *pBB)
@@ -239,6 +272,10 @@ int SCD41::co2()
 
 void SCD41::shutdown()
 {
+    if (_iMode == SCD41_MODE_INVALID) {
+        return;
+    }
+
   sendCMD(SCD41_CMD_POWERDOWN);
   _iMode = SCD41_MODE_OFF;
   delay(1);
