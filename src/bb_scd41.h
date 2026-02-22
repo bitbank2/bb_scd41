@@ -73,6 +73,7 @@ typedef struct _tagbbi2c
 #define SCD41_CMD_POWERDOWN                               0x36e0 // execution time: 1ms
 #define SCD41_CMD_WAKEUP                                  0x36f6 // execution time: 20ms
 #define SCD41_CMD_FORCE_RECALIBRATE                       0x362f // execution time: 400ms
+#define SCD41_CMD_REINIT                                  0x3646 // execution time: 30ms
 
 
 enum {
@@ -102,6 +103,7 @@ class SCD41
     int stop();
     int getMode();
     void wakeup();
+    bool hasSample(); // checks if a sample is ready to read
     int triggerSample(); // trigger a sample to start (single shot mode only)
     int getSample(); // read the latest sample data
     int recalibrate(uint16_t u16CO2);

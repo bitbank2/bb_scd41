@@ -36,6 +36,20 @@ int SCD41::triggerSample()
     return SCD41_SUCCESS;
 } /* triggerSample() */
 
+bool SCD41::hasSample()
+{
+uint16_t u16Status;
+
+    if (_iMode == SCD41_MODE_INVALID || _iMode == SCD41_MODE_OFF) {
+        return false; // wrong mode
+    }
+    u16Status = readRegister(SCD41_CMD_GET_DATA_READY_STATUS);
+    if ((u16Status & 0x07ff) == 0x0000) { // lower 11 bits == 0 -> data not ready
+       return false;
+    }
+    return true;
+} /* hasSample() */
+
 int SCD41::getSample()
 {
 uint8_t ucTemp[16];
