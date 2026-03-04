@@ -15,12 +15,15 @@ SCD41 mySensor;
 
 // Define both of these to be -1 for default I2C pins
 // This demo was run on an MCU which has them connected to GPIO 5 and 6
-#define SDA_PIN 5
-#define SCL_PIN 6
+#define SDA_PIN -1
+#define SCL_PIN -1
+//#define SDA_PIN 39
+//#define SCL_PIN 40
 #define BITBANG false
 
 // Converts the CO2 concentration into a quality assessment
-char *szAirQ[] = {(char *)"Good", (char *)"So-So", (char *)"Bad", (char *)"Danger", (char *)"Get out!"};
+const char *szAirQ[] = {(char *)"Good", (char *)"So-So", (char *)"Bad", (char *)"Danger", (char *)"Get out!"};
+const char *szTypes[] = {"Invalid","SCD40","SCD41","SCD43"};
 
 void setup() {
   Serial.begin(115200);
@@ -28,7 +31,8 @@ void setup() {
   Serial.println("Starting...");
   if (mySensor.init(SDA_PIN, SCL_PIN, BITBANG, 100000) == SCD41_SUCCESS)
   {
-    Serial.println("Found SCD41 sensor!");
+    Serial.println("Found a SCD4x sensor!");
+    Serial.printf("type = %s\n", szTypes[mySensor.type()]);
     mySensor.start(); // start sampling mode
   } else { // can't find the sensor, stop
     Serial.println("SCD41 sensor not found");

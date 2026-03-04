@@ -78,19 +78,17 @@ uint16_t u16Status;
     return SCD41_SUCCESS;
 } /* getSample() */
 
-int SCD41::getMode()
-{
-    return _iMode;
-} /* getMode() */
-
 void SCD41::wakeup()
 {
     if (_iMode == SCD41_MODE_INVALID) {
         return; // can't wake up
     }
-
     sendCMD(SCD41_CMD_WAKEUP);
     delay(20);
+// Power fluctuations can sometimes cause the SCD4x to get into a confused
+// state, so a soft-reset is necessary to make sure it starts correctly
+    sendCMD(SCD41_CMD_REINIT);
+    delay(30);
     _iMode = SCD41_MODE_IDLE;
 } /* wakeup() */
 
@@ -111,9 +109,12 @@ int SCD41::start(int iMode)
     if (_iMode == SCD41_MODE_INVALID) {
         return SCD41_ERROR;
     }
-
-     if (iMode < SCD41_MODE_PERIODIC || iMode > SCD41_MODE_SINGLE_SHOT)
+    if (iMode < SCD41_MODE_PERIODIC || iMode > SCD41_MODE_SINGLE_SHOT) {
         return SCD41_INVALID_PARAM;
+    }
+    if (_iType == TYPE_SCD40 && iMode == SCD41_MODE_SINGLE_SHOT) {
+        return SCD41_INVALID_PARAM; // SCD40 can't do single shot
+    }
     if (_iMode == SCD41_MODE_OFF) {
         wakeup(); // first wake up the sensor
         delay(5);
@@ -174,7 +175,17 @@ int SCD41::init(int iSDA, int iSCL, bool bBitBang, int32_t iSpeed)
 	I2CInit(&_bbi2c, iSpeed);
         _iAddr = 0x62;
         if (I2CTest(&_bbi2c, _iAddr)) {
+            uint8_t uc, ucTemp[4];
             _iMode = SCD41_MODE_OFF;
+            wakeup(); // must wake up the SCD4x before asking for the variant
+            sendCMD(SCD41_CMD_GET_VARIANT); // get the chip type
+            delay(1);
+            I2CRead(&_bbi2c, _iAddr, ucTemp, 3); // read device type
+            //Serial.printf("0x%08x\n", *(uint32_t *)ucTemp);
+            uc = ucTemp[0] >> 4; // upper 4 bits is the chip type
+            if (uc == 0) _iType = TYPE_SCD40;
+            else if (uc == 1) _iType = TYPE_SCD41;
+            else if (uc == 5) _iType = TYPE_SCD43;
             return SCD41_SUCCESS;
         }
         return SCD41_ERROR;

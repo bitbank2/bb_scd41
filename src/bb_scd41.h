@@ -57,6 +57,14 @@ typedef struct _tagbbi2c
 } BBI2C;
 #endif
 
+// The current sensor type
+enum {
+   TYPE_INVALID=0,
+   TYPE_SCD40,
+   TYPE_SCD41,
+   TYPE_SCD43
+};
+
 #define SCD41_SUCCESS 0
 #define SCD41_ERROR -1
 #define SCD41_INVALID_PARAM -2
@@ -74,6 +82,7 @@ typedef struct _tagbbi2c
 #define SCD41_CMD_WAKEUP                                  0x36f6 // execution time: 20ms
 #define SCD41_CMD_FORCE_RECALIBRATE                       0x362f // execution time: 400ms
 #define SCD41_CMD_REINIT                                  0x3646 // execution time: 30ms
+#define SCD41_CMD_GET_VARIANT                             0x202f // execution time: 1ms
 
 
 enum {
@@ -101,7 +110,8 @@ class SCD41
     BBI2C *getBB();
     int start(int iMode = SCD41_MODE_PERIODIC);
     int stop();
-    int getMode();
+    int mode() {return _iMode;}
+    int type() {return _iType;}
     void wakeup();
     bool hasSample(); // checks if a sample is ready to read
     int triggerSample(); // trigger a sample to start (single shot mode only)
